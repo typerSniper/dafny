@@ -1589,7 +1589,7 @@ namespace Microsoft.Dafny
         wr.Write("]{0}", brackets);
       } else {
         wr.Write("Dafny.ArrayHelpers.InitNewArray{0}<{1}>", dimCount, TypeName(elmtType, wr, tok));
-        var inParens = wr.AppendChildInParenthesis();
+        var inParens = wr.ForkInParenthesis();
         inParens.Write(DefaultValue(elmtType, inParens, tok, true));
         for (var d = 0; d < dimCount; d++) {
           inParens.Write(", ");
