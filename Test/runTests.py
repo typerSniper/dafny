@@ -448,7 +448,6 @@ def run_tests(args):
         args.compiler = Defaults.COMPILER
     if args.base_flags is None:
         args.base_flags = Defaults.FLAGS
-
     for compiler in args.compiler:
         server = get_server_path(compiler)
         if not os.path.exists(compiler):

@@ -10,7 +10,7 @@ exe:
 boogie: ${DIR}/Source/boogie/Binaries/Boogie.exe
 
 ${DIR}/Source/boogie/Binaries/Boogie.exe:
-	(cd ${DIR}/../boogie ; dotnet build Source/boogie/Source/Boogie.sln )
+	(cd ${DIR}/../boogie ; /Users/jataro/.dotnet/dotnet build Source/boogie/Source/Boogie.sln )
 
 parser:
 	make -C ${DIR}/Source/Dafny -f Makefile.linux all

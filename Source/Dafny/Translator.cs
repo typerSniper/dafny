@@ -10327,6 +10327,14 @@ namespace Microsoft.Dafny {
       }
     }
 
+    private void AddSplittingAssert(BoogieStmtListBuilder b, IToken tok)
+    {
+      Contract.Requires(b != null);
+      Contract.Requires(tok != null);
+
+      b.Add(Assert(tok, Bpl.Expr.True, "split_here assertion, should pass", new Bpl.QKeyValue(tok, "split_here", new List<object>(), null)));
+    }
+
     void TrStmt(Statement stmt, BoogieStmtListBuilder builder, List<Variable> locals, ExpressionTranslator etran)
     {
       Contract.Requires(stmt != null);
@@ -10358,6 +10366,7 @@ namespace Microsoft.Dafny {
           if (assertStmt != null && assertStmt.Proof != null) {
             proofBuilder = new BoogieStmtListBuilder(this);
             AddComment(proofBuilder, stmt, "assert statement proof");
+            AddSplittingAssert(proofBuilder, stmt.Tok);
             TrStmt(((AssertStmt)stmt).Proof, proofBuilder, locals, etran);
           } else if (assertStmt != null && assertStmt.Label != null) {
             proofBuilder = new BoogieStmtListBuilder(this);
@@ -10942,6 +10951,9 @@ namespace Microsoft.Dafny {
                 }
               }
               TrStmt_CheckWellformed(CalcStmt.Rhs(s.Steps[i]), b, locals, etran, false);
+              // split
+              AddComment(b, stmt, "splitting here");
+              AddSplittingAssert(b, s.Tok);
               bool splitHappened;
               var ss = TrSplitExpr(s.Steps[i], etran, true, out splitHappened);
               // assert step:
@@ -11738,6 +11750,7 @@ namespace Microsoft.Dafny {
       // INIT is the substitution [old($Heap),$Heap := old($Heap),initHeap].
 
       if (definedness != null) {
+        AddSplittingAssert(definedness, tok);
         if (boundVars.Count != 0) {
           // Note, it would be nicer (and arguably more appropriate) to do a SetupBoundVarsAsLocals
           // here (rather than a TrBoundVariables).  However, there is currently no way to apply
@@ -11915,6 +11928,7 @@ namespace Microsoft.Dafny {
       definedness.Add(TrAssumeCmd(s.Range.tok, etran.TrExpr(s.Range)));
 
       if (s.Body != null) {
+        AddSplittingAssert(definedness, s.Tok);
         TrStmt(s.Body, definedness, locals, etran);
 
         // check that postconditions hold
@@ -12112,7 +12126,7 @@ namespace Microsoft.Dafny {
 
       var loopBodyBuilder = new BoogieStmtListBuilder(this);
       loopBodyBuilder.Add(CaptureState(s.Tok, true, "after some loop iterations"));
-
+      AddSplittingAssert(loopBodyBuilder, s.Tok);
       // As the first thing inside the loop, generate:  if (!w) { CheckWellformed(inv); assume false; }
       invDefinednessBuilder.Add(TrAssumeCmd(s.Tok, Bpl.Expr.False));
       loopBodyBuilder.Add(new Bpl.IfCmd(s.Tok, Bpl.Expr.Not(w), invDefinednessBuilder.Collect(s.Tok), null, null));
